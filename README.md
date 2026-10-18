@@ -19,4 +19,9 @@ The tests need Docker. They start n8n next to a stub OIDC issuer and check that 
 
 ## Releases
 
-release-please keeps a release PR open. Merging it tags `vX.Y.Z`. The tag publishes a multi-arch image, reads it back by digest, and runs the image tests against the published image.
+A release carries the n8n version it ships, so the estate shows the version that is running.
+
+- A push to `main` that changes the image (`Dockerfile` or `hooks/`) is released by `release.yml`. The tag comes from `scripts/next-tag.sh`.
+- The tag is the n8n version the Dockerfile pins, for example `v2.38.3`. A change to the image on a version that already has a release gets the next revision: `v2.38.3-1`, then `v2.38.3-2`.
+- A Renovate bump to a new n8n version releases `v<new version>`. A change outside the image releases nothing.
+- The tag publishes a multi-arch image, reads it back by digest, and runs the image tests against the published image.

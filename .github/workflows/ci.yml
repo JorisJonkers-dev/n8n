@@ -37,10 +37,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: docker run --rm -i hadolint/hadolint:v2.12.0 < Dockerfile
 
+      - name: Lint shell
+        if: ${{ !cancelled() }}
+        run: shellcheck scripts/*.sh
+
       - name: Hook file parses
         if: ${{ !cancelled() }}
         run: node --check hooks/oidc.js
 
-      - name: Image builds, starts and loads the OIDC hooks
+      - name: Release tags, and the image builds, starts and loads the OIDC hooks
         if: ${{ !cancelled() }}
         run: npm test

@@ -1,5 +1,6 @@
-# release-please keeps a release PR open; merging it tags vX.Y.Z with the App token,
-# and that tag push triggers publish.yml. A GITHUB_TOKEN tag would trigger nothing.
+# Each push to main that changes the image releases it under the n8n version the
+# Dockerfile pins (scripts/next-tag.sh). The release is created with the App
+# token, because a tag pushed with GITHUB_TOKEN would not trigger publish.yml.
 name: Release
 
 on:
@@ -7,18 +8,18 @@ on:
     branches: [main]
   workflow_dispatch: {}
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 permissions: {}
 
 jobs:
-  release-please:
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     permissions:
-      contents: write
-      pull-requests: write
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      contents: read
     steps:
       - name: mint-app-token
         id: app-token
@@ -28,21 +29,32 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
       - name: assert-token-minted
-        # Fail loudly if the App token is missing — never fall back to GITHUB_TOKEN.
+        # Fail loudly if the App token is missing; never fall back to GITHUB_TOKEN.
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           if [ -z "$APP_TOKEN" ]; then
             echo "E_APP_TOKEN_MISSING: Release App token was not minted." >&2
-            echo "Secrets RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY must be configured." >&2
-            echo "GITHUB_TOKEN fallback is intentionally forbidden." >&2
             exit 1
           fi
-          echo "App token minted successfully (token prefix: ${APP_TOKEN:0:4}...)"
 
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
-        id: release
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          token: ${{ steps.app-token.outputs.token }}
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Release the image under its n8n version
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          tag="$(scripts/next-tag.sh)"
+          if [ -z "$tag" ]; then
+            echo "The image did not change since the last release; nothing to release." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          upstream="${tag#v}"
+          upstream="${upstream%%-*}"
+          gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes \
+            --notes "n8n ${upstream}: https://github.com/n8n-io/n8n/releases/tag/n8n%40${upstream}"
+          echo "Released ${tag}" >> "$GITHUB_STEP_SUMMARY"
