@@ -8,6 +8,17 @@ n8n for the JorisJonkers-dev estate: `ghcr.io/jorisjonkers-dev/n8n`, built from 
 - `hooks/oidc.js` adds sign-in through the estate's OIDC issuer, because n8n's own OIDC is Enterprise-only. The image loads it through `EXTERNAL_HOOK_FILES`, so no deployment mounts executable code.
 - The hooks read `OIDC_ISSUER_URL`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI` and, optionally, `OIDC_SCOPES`. If any of the first four is missing, the hooks log `OIDC disabled` and n8n keeps its own login.
 
+## Deployment
+
+`deploy/n8n.project.yml` is the deploy-kit Project Intent: Project `n8n` in `n8n-system` at `n8n.jorisjonkers.dev`, with its environment in `deploy/env/n8n/base.env`. CI validates both with the deploy-kit release `tools/deploy-kit` pins:
+
+```bash
+cd tools/deploy-kit && NODE_AUTH_TOKEN="$(gh auth token)" npm ci --ignore-scripts
+npx --no-install deploy-kit validate ../../deploy/n8n.project.yml ../../deploy/env
+```
+
+The image tests start n8n as the project file runs it: a read-only root, with only its `writablePaths` and its volume writable.
+
 ## Tests
 
 ```bash

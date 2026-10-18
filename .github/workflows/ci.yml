@@ -16,6 +16,7 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read # the pinned deploy-kit installs from npm.pkg.github.com
 
 jobs:
   pipeline-complete:
@@ -28,6 +29,8 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: '@jorisjonkers-dev'
 
       - name: Lint workflows
         if: ${{ !cancelled() }}
@@ -44,6 +47,15 @@ jobs:
       - name: Hook file parses
         if: ${{ !cancelled() }}
         run: node --check hooks/oidc.js
+
+      - name: Project file validates with the pinned deploy-kit
+        if: ${{ !cancelled() }}
+        working-directory: tools/deploy-kit
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        run: |
+          npm ci --ignore-scripts
+          npx --no-install deploy-kit validate ../../deploy/n8n.project.yml ../../deploy/env
 
       - name: Release tags, and the image builds, starts and loads the OIDC hooks
         if: ${{ !cancelled() }}
