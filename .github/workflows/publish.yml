@@ -1,0 +1,73 @@
+# A v*.*.* tag (pushed by release.yml with the App token) builds and pushes the
+# multi-arch image, then reads it back by digest and runs the image tests on it.
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish (vX.Y.Z)
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  publish-image:
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@1efce81af819868fb2f5fd99ee7b04a1275845d8 # v0.18.0
+    with:
+      image-name: n8n
+      version: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      platforms: linux/amd64,linux/arm64
+    permissions:
+      contents: read
+      packages: write
+
+  verify-image:
+    needs: [publish-image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 22
+
+      - name: Resolve the published digest
+        id: digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ghcr.io/jorisjonkers-dev/n8n
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          manifest="$(docker buildx imagetools inspect "${IMAGE}:${TAG}" --format '{{json .Manifest}}')"
+          digest="$(jq -r '.digest' <<<"$manifest")"
+          case "$digest" in
+            sha256:*) ;;
+            *) echo "E_FLOATING_IMAGE: no digest for ${IMAGE}:${TAG}" >&2; exit 1 ;;
+          esac
+          platforms="$(jq -r '[.manifests[]?.platform | "\(.os)/\(.architecture)"] | join(",")' <<<"$manifest")"
+          case "$platforms" in
+            *linux/amd64*linux/arm64*|*linux/arm64*linux/amd64*) ;;
+            *) echo "E_SINGLE_ARCH: expected linux/amd64 and linux/arm64, got '$platforms'" >&2; exit 1 ;;
+          esac
+          echo "ref=${IMAGE}@${digest}" >> "$GITHUB_OUTPUT"
+          echo "Published ${IMAGE}:${TAG} as ${digest} (${platforms})" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: The published image passes the image tests
+        env:
+          IMAGE: ${{ steps.digest.outputs.ref }}
+        run: |
+          docker pull "$IMAGE"
+          npm test
