@@ -47,6 +47,11 @@ applications:
             credentials: { delivery: env, rotation: { tolerates: restart } }
           - { application: auth, surface: http }
 
+        egress:
+          to: internet
+          reason: >-
+            Workflows call outside APIs, and community nodes install from npm.
+
         secrets:
           # The key n8n encrypts stored credentials with, and the OIDC client secret
           # auth-api holds the other copy of.
