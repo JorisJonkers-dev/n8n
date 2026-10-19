@@ -1,8 +1,11 @@
 # n8n with the OIDC sign-in hooks built in, so no deployment mounts executable code.
-FROM docker.io/n8nio/n8n:2.38.3@sha256:4b76b9c5a69dc1c0f26bedd21b4e281ac2c84bd88d33857487b9e63dd0a42e87
+FROM docker.io/n8nio/n8n:2.43.4@sha256:c34ee9107a42b837e25cec0c8a927ab90a45b776aa2ccbf15e5b9cda466fad2c
 
 COPY hooks/oidc.js /opt/n8n-hooks/oidc.js
 
 ENV EXTERNAL_HOOK_FILES=/opt/n8n-hooks/oidc.js \
     EXTERNAL_FRONTEND_HOOKS_URLS=/assets/oidc-frontend-hook.js \
     N8N_ADDITIONAL_NON_UI_ROUTES=auth
+
+# The base image's node user, by number, so the images lock records its uid and gid.
+USER 1000:1000

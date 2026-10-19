@@ -123,6 +123,10 @@ test('the image is built from n8n pinned by digest', () => {
   assert.match(from, /^docker\.io\/n8nio\/n8n:\d+\.\d+\.\d+@sha256:[0-9a-f]{64}$/)
 })
 
+test('the image runs as a numeric user, so the images lock can record its uid and gid', () => {
+  assert.equal(docker('image', 'inspect', IMAGE, '--format', '{{.Config.User}}'), '1000:1000')
+})
+
 test('a community node installs on the read-only root', () => {
   const out = docker(
     'exec', NAME, 'sh', '-c',
