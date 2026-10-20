@@ -4,7 +4,7 @@
 // it over HTTP. IMAGE skips the build and tests an image that already exists.
 import { after, before, test } from 'node:test'
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
@@ -15,6 +15,10 @@ const NAME = `n8n-image-test-${process.pid}`
 const PROJECT = readFileSync(`${ROOT}/deploy/n8n.project.yml`, 'utf8')
 const WRITABLE = PROJECT.match(/writablePaths: \[([^\]]*)\]/)[1].split(',').map((path) => path.trim())
 const VOLUME = PROJECT.match(/mountAt: (\S+)/)[1]
+// The proxy setting the estate runs n8n with, read from the Process scope.
+const PROXY_ENV = readFileSync(`${ROOT}/deploy/env/n8n/base.env`, 'utf8')
+  .split('\n')
+  .filter((line) => /^N8N_(PROXY_HOPS|TRUST_PROXY)=/.test(line))
 const AUTHORIZE = 'http://issuer.test/authorize'
 let base
 let issuer
@@ -69,6 +73,7 @@ before(async () => {
     '-e', 'OIDC_CLIENT_SECRET=image-test',
     '-e', 'OIDC_REDIRECT_URI=http://localhost:5678/auth/oidc/callback',
     '-e', 'N8N_ENCRYPTION_KEY=image-test',
+    ...PROXY_ENV.flatMap((line) => ['-e', line]),
     IMAGE,
   )
   const port = docker('port', NAME, '5678/tcp').split('\n')[0].split(':').pop()
@@ -129,6 +134,16 @@ test('the image runs as a numeric user, so the images lock can record its uid an
 
 test('n8n creates its data table upload directory on the read-only root', () => {
   assert.equal(docker('exec', NAME, 'sh', '-c', 'test -d /tmp/n8nDataTableUploads && echo present || echo missing'), 'present')
+})
+
+test('a sign-in through the proxy logs no rate-limit validation error', async () => {
+  await fetch(`${base}/rest/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.7' },
+    body: JSON.stringify({ emailOrLdapLoginId: 'nobody@example.com', password: 'wrong' }),
+  })
+  const { stdout, stderr } = spawnSync('docker', ['logs', NAME], { encoding: 'utf8' })
+  assert.doesNotMatch(stdout + stderr, /ERR_ERL_UNEXPECTED_X_FORWARDED_FOR/)
 })
 
 test('a community node installs on the read-only root', () => {
