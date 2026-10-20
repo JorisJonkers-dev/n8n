@@ -127,6 +127,10 @@ test('the image runs as a numeric user, so the images lock can record its uid an
   assert.equal(docker('image', 'inspect', IMAGE, '--format', '{{.Config.User}}'), '1000:1000')
 })
 
+test('n8n creates its data table upload directory on the read-only root', () => {
+  assert.equal(docker('exec', NAME, 'sh', '-c', 'test -d /tmp/n8nDataTableUploads && echo present || echo missing'), 'present')
+})
+
 test('a community node installs on the read-only root', () => {
   const out = docker(
     'exec', NAME, 'sh', '-c',
