@@ -19,7 +19,7 @@ permissions: {}
 
 jobs:
   publish-image:
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@1efce81af819868fb2f5fd99ee7b04a1275845d8 # v0.18.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@870429202376dac2e9434746941c54f9a2be605f # v0.33.0
     with:
       image-name: n8n
       version: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
@@ -42,7 +42,7 @@ jobs:
 
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Resolve the published digest
         id: digest
@@ -74,8 +74,8 @@ jobs:
           docker pull "$IMAGE"
           npm test
 
-  # The images lock: the pushed digest, under the alias the project file names, with
-  # the user the image runs as, read from what was pushed.
+  # The images lock: the pushed digest, under the alias the project file names, with the user the
+  # image runs as and the n8n version it ships, read back from what was pushed.
   resolve-image-lock:
     needs: [verify-image]
     runs-on: ubuntu-latest
@@ -84,7 +84,7 @@ jobs:
       contents: read
       packages: read
     outputs:
-      images-lock-artifact: images-lock-${{ github.run_id }}
+      images-lock-artifact: ${{ steps.lock.outputs.images-lock-artifact }}
       source-sha: ${{ steps.source.outputs.sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -97,47 +97,12 @@ jobs:
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: lock-images
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-        run: |
-          set -euo pipefail
-          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          {
-            echo 'apiVersion: lock.jorisjonkers.dev/v1'
-            echo 'kind: ImagesLock'
-            echo 'schemaVersion: 1.0.0'
-            echo 'name: n8n'
-            echo 'images:'
-          } > images.lock.yml
-          for alias in n8n; do
-            image="ghcr.io/jorisjonkers-dev/${alias}"
-            digest="$(docker buildx imagetools inspect "${image}:${TAG}" --format '{{json .Manifest}}' | jq -r '.digest')"
-            case "$digest" in
-              sha256:*) ;;
-              *) echo "::error::no digest for ${image}:${TAG}"; exit 1 ;;
-            esac
-            user="$(docker buildx imagetools inspect "${image}@${digest}" --format '{{ json .Image }}' \
-              | jq -r 'if has("linux/amd64") then .["linux/amd64"] else . end | .config.User')"
-            case "$user" in
-              *[!0-9:]*|"") echo "::error::${alias} runs as '${user}', not a numeric uid[:gid]"; exit 1 ;;
-            esac
-            {
-              echo "  ${alias}:"
-              echo "    repository: ${image}"
-              echo "    digest: \"${digest}\""
-              echo "    uid: ${user%%:*}"
-              echo "    gid: ${user##*:}"
-            } >> images.lock.yml
-          done
-          cat images.lock.yml >> "$GITHUB_STEP_SUMMARY"
-
-      - name: upload-image-lock
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        id: lock
+        uses: JorisJonkers-dev/github-workflows/actions/resolve-image-lock@870429202376dac2e9434746941c54f9a2be605f # v0.33.0
         with:
-          name: images-lock-${{ github.run_id }}
-          path: images.lock.yml
-          retention-days: 1
+          name: n8n
+          images: n8n
+          tag: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
   fragment:
     needs: [resolve-image-lock]

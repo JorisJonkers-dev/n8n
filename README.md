@@ -30,9 +30,8 @@ The tests need Docker. They start n8n next to a stub OIDC issuer and check that 
 
 ## Releases
 
-A release carries the n8n version it ships, so the estate shows the version that is running.
+A release's version counts this repository's own changes. The n8n version the image ships is recorded separately, as the images lock's `version` (JorisJonkers-dev/workspace#140), so a configuration fix no longer waits for an n8n release.
 
-- A push to `main` that changes the image (`Dockerfile` or `hooks/`) is released by `release.yml`. The tag comes from `scripts/next-tag.sh`.
-- The tag is the n8n version the Dockerfile pins, for example `v2.38.3`. A change to the image on a version that already has a release gets the next revision: `v2.38.3-1`, then `v2.38.3-2`.
-- A Renovate bump to a new n8n version releases `v<new version>`. A change outside the image releases nothing.
+- release-please keeps a release PR from conventional commits, continuing from `v2.44.4`, the last tag named after n8n. Merging it tags `vX.Y.Z`.
+- The shared image build labels the image `org.opencontainers.image.version` with the n8n version the Dockerfile pins, and the shared lock step reads it back into the images lock.
 - The tag publishes a multi-arch image, reads it back by digest, and runs the image tests against the published image.
