@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.45.1](https://github.com/JorisJonkers-dev/n8n/compare/v2.45.0...v2.45.1) (2026-10-21)
+
+
+### Miscellaneous Chores
+
+* release 2.45.1, published from its own tag ([#19](https://github.com/JorisJonkers-dev/n8n/issues/19)) ([2966ad3](https://github.com/JorisJonkers-dev/n8n/commit/2966ad390224bdba91e6e3ac5096a379d6c0b571))
+
 ## [2.45.0](https://github.com/JorisJonkers-dev/n8n/compare/v2.44.4...v2.45.0) (2026-10-21)
 
 
