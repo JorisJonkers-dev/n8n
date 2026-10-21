@@ -6,6 +6,6 @@
     "test": "node --test --test-concurrency=1 tests/*.test.mjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": "v26.12.1"
   }
 }
