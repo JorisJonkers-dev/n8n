@@ -1,29 +1,27 @@
-# Each push to main that changes the image releases it under the n8n version the
-# Dockerfile pins (scripts/next-tag.sh). The release is created with the App
-# token, because a tag pushed with GITHUB_TOKEN would not trigger publish.yml.
+# Tag -> release flow (org standard).
+#
+# release-please maintains a release PR that accumulates conventional commits and, when merged,
+# creates a vX.Y.Z tag and GitHub Release. The version counts this repository's own changes; the
+# n8n version the image ships is the images lock's `version` (JorisJonkers-dev/workspace#140).
+#
+# The tag starts publish.yml, which builds the image and publishes the Intent Fragment. It is
+# created with the App token, because a tag pushed with GITHUB_TOKEN would not start a workflow.
 name: Release
 
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}
 
-concurrency:
-  group: release
-  cancel-in-progress: false
-
-permissions: {}
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  release:
+  release-please:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
     steps:
-      - name: mint-app-token
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
@@ -38,23 +36,8 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Release the image under its n8n version
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          set -euo pipefail
-          tag="$(scripts/next-tag.sh)"
-          if [ -z "$tag" ]; then
-            echo "The image did not change since the last release; nothing to release." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          upstream="${tag#v}"
-          upstream="${upstream%%-*}"
-          gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes \
-            --notes "n8n ${upstream}: https://github.com/n8n-io/n8n/releases/tag/n8n%40${upstream}"
-          echo "Released ${tag}" >> "$GITHUB_STEP_SUMMARY"
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
