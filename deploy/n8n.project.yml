@@ -25,7 +25,6 @@ applications:
           - { path: /, match: prefix, process: n8n, surface: http }
 
     observability:
-      alertClass: business-hours
       scrape:
         process: n8n
         surface: http
