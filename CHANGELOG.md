@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.46.0](https://github.com/JorisJonkers-dev/n8n/compare/v2.45.1...v2.46.0) (2026-10-27)
+
+
+### Features
+
+* **deploy:** publish on deploy-kit 1.0 ([#24](https://github.com/JorisJonkers-dev/n8n/issues/24)) ([ada2115](https://github.com/JorisJonkers-dev/n8n/commit/ada211593a0248ba0d78b64ccedefd827da15dba)), closes [#25](https://github.com/JorisJonkers-dev/n8n/issues/25)
+
 ## [2.45.1](https://github.com/JorisJonkers-dev/n8n/compare/v2.45.0...v2.45.1) (2026-10-21)
 
 
