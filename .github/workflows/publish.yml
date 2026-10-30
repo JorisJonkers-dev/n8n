@@ -19,7 +19,7 @@ permissions: {}
 
 jobs:
   publish-image:
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@16d241e44f03c5cc4696d2d0de615717a61ef3c0 # v0.36.0
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/container-publish.yml@f3bb6cabaa6ee33694f8632ce273a4e703d60780 # v0.38.0
     with:
       image-name: n8n
       version: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
@@ -98,7 +98,7 @@ jobs:
 
       - name: lock-images
         id: lock
-        uses: JorisJonkers-dev/github-workflows/actions/resolve-image-lock@16d241e44f03c5cc4696d2d0de615717a61ef3c0 # v0.36.0
+        uses: JorisJonkers-dev/github-workflows/actions/resolve-image-lock@f3bb6cabaa6ee33694f8632ce273a4e703d60780 # v0.38.0
         with:
           name: n8n
           images: n8n
