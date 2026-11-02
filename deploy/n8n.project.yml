@@ -70,7 +70,7 @@ applications:
 
         # The live pod uses about 430Mi; the old path limited it at 1536Mi.
         placement:
-          memory: 1536Mi
+          memory: 1Gi # peaked at 590Mi over 14 days (2026-11-02)
           cpu: 250m
 
         # Checked against the image on a read-only root: n8n writes its cache at start,
