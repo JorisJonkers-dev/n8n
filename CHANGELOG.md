@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.46.3](https://github.com/JorisJonkers-dev/n8n/compare/v2.46.2...v2.46.3) (2026-11-10)
+
+
+### Bug Fixes
+
+* **deps:** update docker.io/n8nio/n8n docker tag to v2.45.4 ([#38](https://github.com/JorisJonkers-dev/n8n/issues/38)) ([98abea5](https://github.com/JorisJonkers-dev/n8n/commit/98abea527eb8a6568125fefcdad87e9487eb2ab4))
+* **deps:** update docker.io/n8nio/n8n docker tag to v2.46.2 ([#42](https://github.com/JorisJonkers-dev/n8n/issues/42)) ([e71dd86](https://github.com/JorisJonkers-dev/n8n/commit/e71dd86cb546d6e759b5db1675eb3fcdbd5647dd))
+* **deps:** update docker.io/n8nio/n8n docker tag to v2.46.3 ([#43](https://github.com/JorisJonkers-dev/n8n/issues/43)) ([7d582f0](https://github.com/JorisJonkers-dev/n8n/commit/7d582f0a9990496162f98ee04f4c62503c60a07d))
+* **deps:** update docker.io/n8nio/n8n docker tag to v2.46.4 ([#47](https://github.com/JorisJonkers-dev/n8n/issues/47)) ([6927b7c](https://github.com/JorisJonkers-dev/n8n/commit/6927b7c55c5f17d5097d610a9f0e6eb2d42c2cb5))
+* **deps:** update minor and patch dependencies ([#41](https://github.com/JorisJonkers-dev/n8n/issues/41)) ([a62b464](https://github.com/JorisJonkers-dev/n8n/commit/a62b4644840d45e3ce0775a47f13b8e1391874a4))
+
 ## [2.46.2](https://github.com/JorisJonkers-dev/n8n/compare/v2.46.1...v2.46.2) (2026-11-02)
 
 
