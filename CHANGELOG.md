@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.46.4](https://github.com/JorisJonkers-dev/n8n/compare/v2.46.3...v2.46.4) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** update docker.io/n8nio/n8n docker tag to v2.47.0 ([#50](https://github.com/JorisJonkers-dev/n8n/issues/50)) ([a75e4c2](https://github.com/JorisJonkers-dev/n8n/commit/a75e4c2070ccfd1b2cde474f0d491854fd868ae7))
+
 ## [2.46.3](https://github.com/JorisJonkers-dev/n8n/compare/v2.46.2...v2.46.3) (2026-11-10)
 
 
