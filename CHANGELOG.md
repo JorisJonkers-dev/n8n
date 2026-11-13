@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.46.5](https://github.com/JorisJonkers-dev/n8n/compare/v2.46.4...v2.46.5) (2026-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update docker.io/n8nio/n8n docker tag to v2.47.2 ([#52](https://github.com/JorisJonkers-dev/n8n/issues/52)) ([9fb77a8](https://github.com/JorisJonkers-dev/n8n/commit/9fb77a82b5d2f07ed62684f60c986c2e91b54998))
+* **hygiene:** never cancel a run of the required hygiene checks ([#56](https://github.com/JorisJonkers-dev/n8n/issues/56)) ([2b1aaac](https://github.com/JorisJonkers-dev/n8n/commit/2b1aaac9c30e26211c6af010a57ed54b39e034ce))
+
 ## [2.46.4](https://github.com/JorisJonkers-dev/n8n/compare/v2.46.3...v2.46.4) (2026-11-11)
 
 
