@@ -1,5 +1,5 @@
 # n8n with the OIDC sign-in hooks built in, so no deployment mounts executable code.
-FROM docker.io/n8nio/n8n:2.48.1@sha256:5e022f23ef9eaac3f51467e021610c218ed7eb5b41a05edb388ef1c8e00e009f
+FROM docker.io/n8nio/n8n:2.48.2@sha256:4ef95ff54f83188ad491026eac028cfbf3066990d0a47dfb247afbe4b21a13e4
 
 COPY hooks/oidc.js /opt/n8n-hooks/oidc.js
 
